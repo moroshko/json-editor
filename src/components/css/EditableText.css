@@ -1,0 +1,52 @@
+/* @flow */
+
+.EditableText-buttonContainer {
+  display: flex;
+}
+
+.EditableText-button {
+  align-items: center;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  font-size: inherit;
+  padding: 0;
+}
+
+.EditableText-button:active {
+  outline: 0;
+}
+
+/* .EditableText-button is needed to increase specificity */
+.EditableText-button .EditableText-editIcon {
+  display: none;
+  margin-left: 5px;
+}
+
+/* This is for keyboard navigation */
+.EditableText-button:focus .EditableText-editIcon {
+  display: inline;
+}
+
+.EditableText-container:hover .EditableText-editIcon {
+  display: inline;
+}
+
+.EditableText-form {
+  align-items: center;
+  display: flex;
+}
+
+.EditableText-input {
+  border: 0;
+  font-size: inherit;
+  margin: 0;
+  outline: 1px solid #dddfe2;
+  outline-offset: 0.1em;
+  padding: 0;
+}
+
+.EditableText-input:focus {
+  outline: 1px solid #dddfe2;
+}
