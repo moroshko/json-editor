@@ -1,5 +1,11 @@
 import buildAST from "./ast-builder";
 
+it("handles booleans", () => {
+  expect(buildAST(false)).toEqual([
+    { indent: 0, parts: [{ type: "boolean", value: false }] }
+  ]);
+});
+
 it("handles numbers", () => {
   expect(buildAST(3.14)).toEqual([
     { indent: 0, parts: [{ type: "number", value: 3.14 }] }
@@ -13,9 +19,9 @@ it("handles strings", () => {
 });
 
 it("handles arrays", () => {
-  expect(buildAST(["hello", 3.14, "world"])).toEqual([
+  expect(buildAST([true, 3.14, "world"])).toEqual([
     { indent: 0, parts: [{ type: "array-start" }] },
-    { indent: 1, parts: [{ type: "string", value: "hello" }] },
+    { indent: 1, parts: [{ type: "boolean", value: true }] },
     { indent: 1, parts: [{ type: "number", value: 3.14 }] },
     { indent: 1, parts: [{ type: "string", value: "world" }] },
     { indent: 0, parts: [{ type: "array-end" }] }
@@ -23,7 +29,7 @@ it("handles arrays", () => {
 });
 
 it("handles nested arrays", () => {
-  expect(buildAST([["a", "b"], 3, [[], "c", [5, ["d"]]]])).toEqual([
+  expect(buildAST([["a", "b"], 3, [[], "c", [false, ["d"]]]])).toEqual([
     { indent: 0, parts: [{ type: "array-start" }] },
     { indent: 1, parts: [{ type: "array-start" }] },
     { indent: 2, parts: [{ type: "string", value: "a" }] },
@@ -35,7 +41,7 @@ it("handles nested arrays", () => {
     { indent: 2, parts: [{ type: "array-end" }] },
     { indent: 2, parts: [{ type: "string", value: "c" }] },
     { indent: 2, parts: [{ type: "array-start" }] },
-    { indent: 3, parts: [{ type: "number", value: 5 }] },
+    { indent: 3, parts: [{ type: "boolean", value: false }] },
     { indent: 3, parts: [{ type: "array-start" }] },
     { indent: 4, parts: [{ type: "string", value: "d" }] },
     { indent: 3, parts: [{ type: "array-end" }] },
@@ -46,7 +52,7 @@ it("handles nested arrays", () => {
 });
 
 it("handles objects", () => {
-  expect(buildAST({ name: "Misha", car: "Toyota" })).toEqual([
+  expect(buildAST({ name: "Misha", age: 20, isHappy: true })).toEqual([
     { indent: 0, parts: [{ type: "object-start" }] },
     {
       indent: 1,
@@ -57,9 +63,13 @@ it("handles objects", () => {
     },
     {
       indent: 1,
+      parts: [{ type: "string", value: "age" }, { type: "number", value: 20 }]
+    },
+    {
+      indent: 1,
       parts: [
-        { type: "string", value: "car" },
-        { type: "string", value: "Toyota" }
+        { type: "string", value: "isHappy" },
+        { type: "boolean", value: true }
       ]
     },
     { indent: 0, parts: [{ type: "object-end" }] }
@@ -73,7 +83,7 @@ it("handles nested objects", () => {
       c: {
         d: {
           e: 5,
-          f: "hey"
+          f: true
         }
       },
       g: {}
@@ -94,11 +104,11 @@ it("handles nested objects", () => {
     },
     {
       indent: 3,
-      parts: [{ type: "string", value: "e" }, { type: "string", value: 5 }]
+      parts: [{ type: "string", value: "e" }, { type: "number", value: 5 }]
     },
     {
       indent: 3,
-      parts: [{ type: "string", value: "f" }, { type: "string", value: "hey" }]
+      parts: [{ type: "string", value: "f" }, { type: "boolean", value: true }]
     },
     { indent: 2, parts: [{ type: "object-end" }] },
     { indent: 1, parts: [{ type: "object-end" }] },
@@ -108,5 +118,58 @@ it("handles nested objects", () => {
     },
     { indent: 1, parts: [{ type: "object-end" }] },
     { indent: 0, parts: [{ type: "object-end" }] }
+  ]);
+});
+
+it("handles complex JSON", () => {
+  expect(
+    buildAST([
+      {
+        a: 5,
+        b: [false, {}],
+        c: []
+      },
+      true,
+      3.14,
+      [
+        {
+          d: "hi"
+        },
+        false
+      ]
+    ])
+  ).toEqual([
+    { indent: 0, parts: [{ type: "array-start" }] },
+    { indent: 1, parts: [{ type: "object-start" }] },
+    {
+      indent: 2,
+      parts: [{ type: "string", value: "a" }, { type: "number", value: 5 }]
+    },
+    {
+      indent: 2,
+      parts: [{ type: "string", value: "b" }, { type: "array-start" }]
+    },
+    { indent: 3, parts: [{ type: "boolean", value: false }] },
+    { indent: 3, parts: [{ type: "object-start" }] },
+    { indent: 3, parts: [{ type: "object-end" }] },
+    { indent: 2, parts: [{ type: "array-end" }] },
+    {
+      indent: 2,
+      parts: [{ type: "string", value: "c" }, { type: "array-start" }]
+    },
+    { indent: 2, parts: [{ type: "array-end" }] },
+    { indent: 1, parts: [{ type: "object-end" }] },
+    { indent: 1, parts: [{ type: "boolean", value: true }] },
+    { indent: 1, parts: [{ type: "number", value: 3.14 }] },
+    { indent: 1, parts: [{ type: "array-start" }] },
+    { indent: 2, parts: [{ type: "object-start" }] },
+    {
+      indent: 3,
+      parts: [{ type: "string", value: "d" }, { type: "string", value: "hi" }]
+    },
+    { indent: 2, parts: [{ type: "object-end" }] },
+    { indent: 2, parts: [{ type: "boolean", value: false }] },
+    { indent: 1, parts: [{ type: "array-end" }] },
+    { indent: 0, parts: [{ type: "array-end" }] }
   ]);
 });

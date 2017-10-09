@@ -1,26 +1,25 @@
 // @flow
 
-type DataType = "number" | "string" | "array" | "object" | "unknown";
+type PrimitiveDataType = "boolean" | "number" | "string";
 
-function getType(data: any): DataType {
+type DataType = PrimitiveDataType | "array" | "object";
+
+function getType(data: any): ?DataType {
   const type = typeof data;
 
   switch (type) {
+    case "boolean":
     case "number":
     case "string":
       return type;
 
     case "object":
       return Array.isArray(data) ? "array" : type;
-
-    default:
-      return "unknown";
   }
 }
 
 type ASTItemPartType =
-  | "number"
-  | "string"
+  | PrimitiveDataType
   | "array-start"
   | "array-end"
   | "object-start"
@@ -28,7 +27,7 @@ type ASTItemPartType =
 
 type ASTItemPart = {
   type: ASTItemPartType,
-  value?: "number" | "string"
+  value?: PrimitiveDataType
 };
 
 type ResultItem = {|
@@ -69,6 +68,7 @@ function buildAST(data: any): Array<ResultItem> {
     const type = getType(data);
 
     switch (type) {
+      case "boolean":
       case "number":
       case "string": {
         result.push({
@@ -138,6 +138,7 @@ function buildAST(data: any): Array<ResultItem> {
             const valueType = getType(value);
 
             switch (valueType) {
+              case "boolean":
               case "number":
               case "string":
                 return acc.concat({
@@ -149,8 +150,8 @@ function buildAST(data: any): Array<ResultItem> {
                       value: key
                     },
                     {
-                      type: "string",
-                      value: data[key]
+                      type: valueType,
+                      value
                     }
                   ]
                 });
@@ -172,7 +173,7 @@ function buildAST(data: any): Array<ResultItem> {
                   },
                   {
                     isResultItem: false,
-                    indent: indent + 2,
+                    indent: indent + 1,
                     data: value,
                     includeParens: false
                   },
