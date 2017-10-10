@@ -1,25 +1,25 @@
-import buildAST from "./ast-builder";
+import getJsonLines from "./json-lines";
 
 it("handles booleans", () => {
-  expect(buildAST(false)).toEqual([
+  expect(getJsonLines(false)).toEqual([
     { indent: 0, parts: [{ type: "boolean", value: false }] }
   ]);
 });
 
 it("handles numbers", () => {
-  expect(buildAST(3.14)).toEqual([
+  expect(getJsonLines(3.14)).toEqual([
     { indent: 0, parts: [{ type: "number", value: 3.14 }] }
   ]);
 });
 
 it("handles strings", () => {
-  expect(buildAST("hello")).toEqual([
+  expect(getJsonLines("hello")).toEqual([
     { indent: 0, parts: [{ type: "string", value: "hello" }] }
   ]);
 });
 
 it("handles arrays", () => {
-  expect(buildAST([true, 3.14, "world"])).toEqual([
+  expect(getJsonLines([true, 3.14, "world"])).toEqual([
     { indent: 0, parts: [{ type: "array-start" }] },
     { indent: 1, parts: [{ type: "boolean", value: true }] },
     { indent: 1, parts: [{ type: "number", value: 3.14 }] },
@@ -29,7 +29,7 @@ it("handles arrays", () => {
 });
 
 it("handles nested arrays", () => {
-  expect(buildAST([["a", "b"], 3, [[], "c", [false, ["d"]]]])).toEqual([
+  expect(getJsonLines([["a", "b"], 3, [[], "c", [false, ["d"]]]])).toEqual([
     { indent: 0, parts: [{ type: "array-start" }] },
     { indent: 1, parts: [{ type: "array-start" }] },
     { indent: 2, parts: [{ type: "string", value: "a" }] },
@@ -51,7 +51,7 @@ it("handles nested arrays", () => {
 });
 
 it("handles objects", () => {
-  expect(buildAST({ name: "Misha", age: 20, isHappy: true })).toEqual([
+  expect(getJsonLines({ name: "Misha", age: 20, isHappy: true })).toEqual([
     { indent: 0, parts: [{ type: "object-start" }] },
     {
       indent: 1,
@@ -77,7 +77,7 @@ it("handles objects", () => {
 
 it("handles nested objects", () => {
   expect(
-    buildAST({
+    getJsonLines({
       a: "b",
       c: {
         d: {
@@ -138,7 +138,7 @@ it("handles nested objects", () => {
 
 it("handles complex JSON", () => {
   expect(
-    buildAST([
+    getJsonLines([
       {
         a: 5,
         b: [false, {}],

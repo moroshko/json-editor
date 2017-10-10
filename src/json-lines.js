@@ -48,7 +48,7 @@ type QueueNonResultItem = {|
   includeParens: boolean
 |};
 
-function buildAST(data: any): Array<ResultItem> {
+function getJsonLines(data: any): Array<ResultItem> {
   let result: Array<ResultItem> = [];
   let queue: Array<QueueResultItem | QueueNonResultItem> = [
     { isResultItem: false, indent: 0, data, includeParens: true }
@@ -316,4 +316,4 @@ function buildAST(data: any): Array<ResultItem> {
   return result;
 }
 
-export default buildAST;
+export default getJsonLines;
