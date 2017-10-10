@@ -37,8 +37,7 @@ it("handles nested arrays", () => {
     { indent: 1, parts: [{ type: "array-end" }] },
     { indent: 1, parts: [{ type: "number", value: 3 }] },
     { indent: 1, parts: [{ type: "array-start" }] },
-    { indent: 2, parts: [{ type: "array-start" }] },
-    { indent: 2, parts: [{ type: "array-end" }] },
+    { indent: 2, parts: [{ type: "array-start" }, { type: "array-end" }] },
     { indent: 2, parts: [{ type: "string", value: "c" }] },
     { indent: 2, parts: [{ type: "array-start" }] },
     { indent: 3, parts: [{ type: "boolean", value: false }] },
@@ -83,10 +82,11 @@ it("handles nested objects", () => {
       c: {
         d: {
           e: 5,
-          f: true
+          f: {}
         }
       },
-      g: {}
+      g: {},
+      h: []
     })
   ).toEqual([
     { indent: 0, parts: [{ type: "object-start" }] },
@@ -108,15 +108,30 @@ it("handles nested objects", () => {
     },
     {
       indent: 3,
-      parts: [{ type: "string", value: "f" }, { type: "boolean", value: true }]
+      parts: [
+        { type: "string", value: "f" },
+        { type: "object-start" },
+        { type: "object-end" }
+      ]
     },
     { indent: 2, parts: [{ type: "object-end" }] },
     { indent: 1, parts: [{ type: "object-end" }] },
     {
       indent: 1,
-      parts: [{ type: "string", value: "g" }, { type: "object-start" }]
+      parts: [
+        { type: "string", value: "g" },
+        { type: "object-start" },
+        { type: "object-end" }
+      ]
     },
-    { indent: 1, parts: [{ type: "object-end" }] },
+    {
+      indent: 1,
+      parts: [
+        { type: "string", value: "h" },
+        { type: "array-start" },
+        { type: "array-end" }
+      ]
+    },
     { indent: 0, parts: [{ type: "object-end" }] }
   ]);
 });
@@ -150,14 +165,16 @@ it("handles complex JSON", () => {
       parts: [{ type: "string", value: "b" }, { type: "array-start" }]
     },
     { indent: 3, parts: [{ type: "boolean", value: false }] },
-    { indent: 3, parts: [{ type: "object-start" }] },
-    { indent: 3, parts: [{ type: "object-end" }] },
+    { indent: 3, parts: [{ type: "object-start" }, { type: "object-end" }] },
     { indent: 2, parts: [{ type: "array-end" }] },
     {
       indent: 2,
-      parts: [{ type: "string", value: "c" }, { type: "array-start" }]
+      parts: [
+        { type: "string", value: "c" },
+        { type: "array-start" },
+        { type: "array-end" }
+      ]
     },
-    { indent: 2, parts: [{ type: "array-end" }] },
     { indent: 1, parts: [{ type: "object-end" }] },
     { indent: 1, parts: [{ type: "boolean", value: true }] },
     { indent: 1, parts: [{ type: "number", value: 3.14 }] },

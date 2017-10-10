@@ -88,12 +88,26 @@ function buildAST(data: any): Array<ResultItem> {
           queue.unshift({
             isResultItem: true,
             indent,
-            parts: [
-              {
-                type: "array-end"
-              }
-            ]
+            parts:
+              data.length === 0
+                ? [
+                    {
+                      type: "array-start"
+                    },
+                    {
+                      type: "array-end"
+                    }
+                  ]
+                : [
+                    {
+                      type: "array-end"
+                    }
+                  ]
           });
+        }
+
+        if (data.length === 0) {
+          break;
         }
 
         queue.unshift(
@@ -120,27 +134,43 @@ function buildAST(data: any): Array<ResultItem> {
       }
 
       case "object": {
+        const dataKeys = Object.keys(data);
+
         if (includeParens) {
           queue.unshift({
             isResultItem: true,
             indent,
-            parts: [
-              {
-                type: "object-end"
-              }
-            ]
+            parts:
+              dataKeys.length === 0
+                ? [
+                    {
+                      type: "object-start"
+                    },
+                    {
+                      type: "object-end"
+                    }
+                  ]
+                : [
+                    {
+                      type: "object-end"
+                    }
+                  ]
           });
         }
 
+        if (dataKeys.length === 0) {
+          break;
+        }
+
         queue.unshift(
-          ...Object.keys(data).reduce((acc, key) => {
+          ...dataKeys.reduce((acc, key) => {
             const value = data[key];
             const valueType = getType(value);
 
             switch (valueType) {
               case "boolean":
               case "number":
-              case "string":
+              case "string": {
                 return acc.concat({
                   isResultItem: true,
                   indent: indent + 1,
@@ -155,8 +185,28 @@ function buildAST(data: any): Array<ResultItem> {
                     }
                   ]
                 });
+              }
 
-              case "array":
+              case "array": {
+                if (value.length === 0) {
+                  return acc.concat({
+                    isResultItem: true,
+                    indent: indent + 1,
+                    parts: [
+                      {
+                        type: "string",
+                        value: key
+                      },
+                      {
+                        type: "array-start"
+                      },
+                      {
+                        type: "array-end"
+                      }
+                    ]
+                  });
+                }
+
                 return acc.concat(
                   {
                     isResultItem: true,
@@ -187,8 +237,28 @@ function buildAST(data: any): Array<ResultItem> {
                     ]
                   }
                 );
+              }
 
-              case "object":
+              case "object": {
+                if (Object.keys(value).length === 0) {
+                  return acc.concat({
+                    isResultItem: true,
+                    indent: indent + 1,
+                    parts: [
+                      {
+                        type: "string",
+                        value: key
+                      },
+                      {
+                        type: "object-start"
+                      },
+                      {
+                        type: "object-end"
+                      }
+                    ]
+                  });
+                }
+
                 return acc.concat(
                   {
                     isResultItem: true,
@@ -219,6 +289,7 @@ function buildAST(data: any): Array<ResultItem> {
                     ]
                   }
                 );
+              }
 
               default:
                 return acc;
