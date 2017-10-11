@@ -48,7 +48,7 @@ type QueueNonResultItem = {|
   includeParens: boolean
 |};
 
-function getJsonLines(data: any): Array<ResultItem> {
+function getObjectLines(data: any): Array<ResultItem> {
   let result: Array<ResultItem> = [];
   let queue: Array<QueueResultItem | QueueNonResultItem> = [
     { isResultItem: false, indent: 0, data, includeParens: true }
@@ -316,4 +316,4 @@ function getJsonLines(data: any): Array<ResultItem> {
   return result;
 }
 
-export default getJsonLines;
+export default getObjectLines;
