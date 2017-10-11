@@ -1,6 +1,31 @@
 // @flow
 
-type DataType = "boolean" | "number" | "string" | "array" | "object";
+import type {
+  DataType,
+  ArrayStartItemPart,
+  ArrayEndItemPart,
+  ObjectStartItemPart,
+  ObjectEndItemPart,
+  ItemPart
+} from "./types";
+
+export type ResultItem = {|
+  indent: number,
+  parts: Array<ItemPart>
+|};
+
+export type QueueResultItem = {|
+  isResultItem: true,
+  indent: number,
+  parts: Array<ItemPart>
+|};
+
+export type QueueNonResultItem = {|
+  isResultItem: false,
+  indent: number,
+  key: ?string,
+  data: any
+|};
 
 function getType(data: any): ?DataType {
   const type = typeof data;
@@ -18,64 +43,6 @@ function getType(data: any): ?DataType {
       return null;
   }
 }
-
-type BooleanItemPart = {|
-  type: "boolean",
-  value: boolean
-|};
-
-type numberItemPart = {|
-  type: "number",
-  value: number
-|};
-
-type StringItemPart = {|
-  type: "string",
-  value: string
-|};
-
-type ArrayStartItemPart = {|
-  type: "array-start"
-|};
-
-type ArrayEndItemPart = {
-  type: "array-end"
-};
-
-type ObjectStartItemPart = {
-  type: "object-start"
-};
-
-type ObjectEndItemPart = {
-  type: "object-end"
-};
-
-type ItemPart =
-  | BooleanItemPart
-  | numberItemPart
-  | StringItemPart
-  | ArrayStartItemPart
-  | ArrayEndItemPart
-  | ObjectStartItemPart
-  | ObjectEndItemPart;
-
-type ResultItem = {|
-  indent: number,
-  parts: Array<ItemPart>
-|};
-
-type QueueResultItem = {|
-  isResultItem: true,
-  indent: number,
-  parts: Array<ItemPart>
-|};
-
-type QueueNonResultItem = {|
-  isResultItem: false,
-  indent: number,
-  key: ?string,
-  data: any
-|};
 
 const arrayStart: ArrayStartItemPart = {
   type: "array-start"
