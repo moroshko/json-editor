@@ -1,8 +1,6 @@
 // @flow
 
-type PrimitiveDataType = "boolean" | "number" | "string";
-
-type DataType = PrimitiveDataType | "array" | "object";
+type DataType = "boolean" | "number" | "string" | "array" | "object";
 
 function getType(data: any): ?DataType {
   const type = typeof data;
@@ -15,43 +13,99 @@ function getType(data: any): ?DataType {
 
     case "object":
       return Array.isArray(data) ? "array" : type;
+
+    default:
+      return null;
   }
 }
 
-type ASTItemPartType =
-  | PrimitiveDataType
-  | "array-start"
-  | "array-end"
-  | "object-start"
-  | "object-end";
+type BooleanItemPart = {|
+  type: "boolean",
+  value: boolean
+|};
 
-type ASTItemPart = {
-  type: ASTItemPartType,
-  value?: PrimitiveDataType
+type numberItemPart = {|
+  type: "number",
+  value: number
+|};
+
+type StringItemPart = {|
+  type: "string",
+  value: string
+|};
+
+type ArrayStartItemPart = {|
+  type: "array-start"
+|};
+
+type ArrayEndItemPart = {
+  type: "array-end"
 };
+
+type ObjectStartItemPart = {
+  type: "object-start"
+};
+
+type ObjectEndItemPart = {
+  type: "object-end"
+};
+
+type ItemPart =
+  | BooleanItemPart
+  | numberItemPart
+  | StringItemPart
+  | ArrayStartItemPart
+  | ArrayEndItemPart
+  | ObjectStartItemPart
+  | ObjectEndItemPart;
 
 type ResultItem = {|
   indent: number,
-  parts: Array<ASTItemPart>
+  parts: Array<ItemPart>
 |};
 
 type QueueResultItem = {|
   isResultItem: true,
   indent: number,
-  parts: Array<ASTItemPart>
+  parts: Array<ItemPart>
 |};
 
 type QueueNonResultItem = {|
   isResultItem: false,
   indent: number,
-  data: any,
-  includeParens: boolean
+  key: ?string,
+  data: any
 |};
 
-function getObjectLines(data: any): Array<ResultItem> {
+const arrayStart: ArrayStartItemPart = {
+  type: "array-start"
+};
+
+const arrayEnd: ArrayEndItemPart = {
+  type: "array-end"
+};
+
+const objectStart: ObjectStartItemPart = {
+  type: "object-start"
+};
+
+const objectEnd: ObjectEndItemPart = {
+  type: "object-end"
+};
+
+function addKeyIfExists(key: ?string, parts: Array<ItemPart>) {
+  return key == null ? parts : [{ type: "string", value: key }, ...parts];
+}
+
+function getObjectLines(object: Object): Array<ResultItem> {
   let result: Array<ResultItem> = [];
   let queue: Array<QueueResultItem | QueueNonResultItem> = [
-    { isResultItem: false, indent: 0, data, includeParens: true }
+    {
+      isResultItem: false,
+      indent: 0,
+      key: null,
+      data: object
+    }
   ];
 
   while (queue.length > 0) {
@@ -64,7 +118,7 @@ function getObjectLines(data: any): Array<ResultItem> {
       continue;
     }
 
-    const { indent, data, includeParens } = item;
+    const { indent, data, key } = item;
     const type = getType(data);
 
     switch (type) {
@@ -73,243 +127,75 @@ function getObjectLines(data: any): Array<ResultItem> {
       case "string": {
         result.push({
           indent,
-          parts: [
-            {
-              type,
-              value: data
-            }
-          ]
+          parts: addKeyIfExists(key, [{ type, value: data }])
         });
         break;
       }
 
       case "array": {
-        if (includeParens) {
-          queue.unshift({
-            isResultItem: true,
-            indent,
-            parts:
-              data.length === 0
-                ? [
-                    {
-                      type: "array-start"
-                    },
-                    {
-                      type: "array-end"
-                    }
-                  ]
-                : [
-                    {
-                      type: "array-end"
-                    }
-                  ]
-          });
-        }
-
         if (data.length === 0) {
+          result.push({
+            indent,
+            parts: addKeyIfExists(key, [arrayStart, arrayEnd])
+          });
           break;
         }
 
         queue.unshift(
-          ...data.map(d => ({
-            isResultItem: false,
-            indent: indent + 1,
-            data: d,
-            includeParens: true
-          }))
-        );
-
-        if (includeParens) {
-          queue.unshift({
+          {
             isResultItem: true,
             indent,
-            parts: [
-              {
-                type: "array-start"
-              }
-            ]
-          });
-        }
+            parts: addKeyIfExists(key, [arrayStart])
+          },
+          ...data.map(item => ({
+            isResultItem: false,
+            indent: indent + 1,
+            key: null,
+            data: item
+          })),
+          {
+            isResultItem: true,
+            indent,
+            parts: [arrayEnd]
+          }
+        );
         break;
       }
 
       case "object": {
-        const dataKeys = Object.keys(data);
+        const keys = Object.keys(data);
 
-        if (includeParens) {
-          queue.unshift({
-            isResultItem: true,
+        if (keys.length === 0) {
+          result.push({
             indent,
-            parts:
-              dataKeys.length === 0
-                ? [
-                    {
-                      type: "object-start"
-                    },
-                    {
-                      type: "object-end"
-                    }
-                  ]
-                : [
-                    {
-                      type: "object-end"
-                    }
-                  ]
+            parts: addKeyIfExists(key, [objectStart, objectEnd])
           });
-        }
-
-        if (dataKeys.length === 0) {
           break;
         }
 
         queue.unshift(
-          ...dataKeys.reduce((acc, key) => {
-            const value = data[key];
-            const valueType = getType(value);
-
-            switch (valueType) {
-              case "boolean":
-              case "number":
-              case "string": {
-                return acc.concat({
-                  isResultItem: true,
-                  indent: indent + 1,
-                  parts: [
-                    {
-                      type: "string",
-                      value: key
-                    },
-                    {
-                      type: valueType,
-                      value
-                    }
-                  ]
-                });
-              }
-
-              case "array": {
-                if (value.length === 0) {
-                  return acc.concat({
-                    isResultItem: true,
-                    indent: indent + 1,
-                    parts: [
-                      {
-                        type: "string",
-                        value: key
-                      },
-                      {
-                        type: "array-start"
-                      },
-                      {
-                        type: "array-end"
-                      }
-                    ]
-                  });
-                }
-
-                return acc.concat(
-                  {
-                    isResultItem: true,
-                    indent: indent + 1,
-                    parts: [
-                      {
-                        type: "string",
-                        value: key
-                      },
-                      {
-                        type: "array-start"
-                      }
-                    ]
-                  },
-                  {
-                    isResultItem: false,
-                    indent: indent + 1,
-                    data: value,
-                    includeParens: false
-                  },
-                  {
-                    isResultItem: true,
-                    indent: indent + 1,
-                    parts: [
-                      {
-                        type: "array-end"
-                      }
-                    ]
-                  }
-                );
-              }
-
-              case "object": {
-                if (Object.keys(value).length === 0) {
-                  return acc.concat({
-                    isResultItem: true,
-                    indent: indent + 1,
-                    parts: [
-                      {
-                        type: "string",
-                        value: key
-                      },
-                      {
-                        type: "object-start"
-                      },
-                      {
-                        type: "object-end"
-                      }
-                    ]
-                  });
-                }
-
-                return acc.concat(
-                  {
-                    isResultItem: true,
-                    indent: indent + 1,
-                    parts: [
-                      {
-                        type: "string",
-                        value: key
-                      },
-                      {
-                        type: "object-start"
-                      }
-                    ]
-                  },
-                  {
-                    isResultItem: false,
-                    indent: indent + 1,
-                    data: value,
-                    includeParens: false
-                  },
-                  {
-                    isResultItem: true,
-                    indent: indent + 1,
-                    parts: [
-                      {
-                        type: "object-end"
-                      }
-                    ]
-                  }
-                );
-              }
-
-              default:
-                return acc;
-            }
-          }, [])
-        );
-
-        if (includeParens) {
-          queue.unshift({
+          {
             isResultItem: true,
             indent,
-            parts: [
-              {
-                type: "object-start"
-              }
-            ]
-          });
-        }
+            parts: addKeyIfExists(key, [objectStart])
+          },
+          ...keys.map(key => ({
+            isResultItem: false,
+            indent: indent + 1,
+            key,
+            data: data[key]
+          })),
+          {
+            isResultItem: true,
+            indent,
+            parts: [objectEnd]
+          }
+        );
         break;
       }
+
+      default:
+        break;
     }
   }
 
