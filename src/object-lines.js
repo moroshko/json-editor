@@ -122,12 +122,30 @@ function getObjectLines(object: Object): Array<ResultItem> {
     const type = getType(data);
 
     switch (type) {
-      case "boolean":
-      case "number":
+      /*
+        Cases are repetetive due to Flow issue.
+        See: https://fb.facebook.com/groups/flow/permalink/1633562116692397/
+       */
+      case "boolean": {
+        result.push({
+          indent,
+          parts: addKeyIfExists(key, [{ type: "boolean", value: data }])
+        });
+        break;
+      }
+
+      case "number": {
+        result.push({
+          indent,
+          parts: addKeyIfExists(key, [{ type: "number", value: data }])
+        });
+        break;
+      }
+
       case "string": {
         result.push({
           indent,
-          parts: addKeyIfExists(key, [{ type, value: data }])
+          parts: addKeyIfExists(key, [{ type: "string", value: data }])
         });
         break;
       }
