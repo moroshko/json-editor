@@ -33,6 +33,14 @@ export type ObjectEndItemPart = {|
   type: "object-end"
 |};
 
+export type ColonItemPart = {|
+  type: "colon"
+|};
+
+export type CommaItemPart = {|
+  type: "comma"
+|};
+
 export type ItemPart =
   | BooleanItemPart
   | numberItemPart
@@ -40,4 +48,6 @@ export type ItemPart =
   | ArrayStartItemPart
   | ArrayEndItemPart
   | ObjectStartItemPart
-  | ObjectEndItemPart;
+  | ObjectEndItemPart
+  | ColonItemPart
+  | CommaItemPart;

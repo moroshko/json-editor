@@ -24,7 +24,8 @@ export type QueueNonResultItem = {|
   isResultItem: false,
   indent: number,
   key: ?string,
-  data: any
+  data: any,
+  hasTrailingComma: boolean
 |};
 
 function getType(data: any): ?DataType {
@@ -60,8 +61,16 @@ const objectEnd: ObjectEndItemPart = {
   type: "object-end"
 };
 
-function addKeyIfExists(key: ?string, parts: Array<ItemPart>) {
-  return key == null ? parts : [{ type: "string", value: key }, ...parts];
+function decorate(
+  key: ?string,
+  parts: Array<ItemPart>,
+  hasTrailingComma: boolean
+): Array<ItemPart> {
+  return [
+    ...(key == null ? [] : [{ type: "string", value: key }, { type: "colon" }]),
+    ...parts,
+    ...(hasTrailingComma ? [{ type: "comma" }] : [])
+  ];
 }
 
 function getObjectLines(object: Object): Array<ResultItem> {
@@ -71,7 +80,8 @@ function getObjectLines(object: Object): Array<ResultItem> {
       isResultItem: false,
       indent: 0,
       key: null,
-      data: object
+      data: object,
+      hasTrailingComma: false
     }
   ];
 
@@ -85,7 +95,7 @@ function getObjectLines(object: Object): Array<ResultItem> {
       continue;
     }
 
-    const { indent, data, key } = item;
+    const { indent, key, data, hasTrailingComma } = item;
     const type = getType(data);
 
     switch (type) {
@@ -96,7 +106,11 @@ function getObjectLines(object: Object): Array<ResultItem> {
       case "boolean": {
         result.push({
           indent,
-          parts: addKeyIfExists(key, [{ type: "boolean", value: data }])
+          parts: decorate(
+            key,
+            [{ type: "boolean", value: data }],
+            hasTrailingComma
+          )
         });
         break;
       }
@@ -104,7 +118,11 @@ function getObjectLines(object: Object): Array<ResultItem> {
       case "number": {
         result.push({
           indent,
-          parts: addKeyIfExists(key, [{ type: "number", value: data }])
+          parts: decorate(
+            key,
+            [{ type: "number", value: data }],
+            hasTrailingComma
+          )
         });
         break;
       }
@@ -112,7 +130,11 @@ function getObjectLines(object: Object): Array<ResultItem> {
       case "string": {
         result.push({
           indent,
-          parts: addKeyIfExists(key, [{ type: "string", value: data }])
+          parts: decorate(
+            key,
+            [{ type: "string", value: data }],
+            hasTrailingComma
+          )
         });
         break;
       }
@@ -121,27 +143,30 @@ function getObjectLines(object: Object): Array<ResultItem> {
         if (data.length === 0) {
           result.push({
             indent,
-            parts: addKeyIfExists(key, [arrayStart, arrayEnd])
+            parts: decorate(key, [arrayStart, arrayEnd], hasTrailingComma)
           });
           break;
         }
+
+        const lastDataIndex = data.length - 1;
 
         queue.unshift(
           {
             isResultItem: true,
             indent,
-            parts: addKeyIfExists(key, [arrayStart])
+            parts: decorate(key, [arrayStart], false)
           },
-          ...data.map(item => ({
+          ...data.map((item, index) => ({
             isResultItem: false,
             indent: indent + 1,
             key: null,
-            data: item
+            data: item,
+            hasTrailingComma: index !== lastDataIndex
           })),
           {
             isResultItem: true,
             indent,
-            parts: [arrayEnd]
+            parts: decorate(null, [arrayEnd], hasTrailingComma)
           }
         );
         break;
@@ -153,27 +178,30 @@ function getObjectLines(object: Object): Array<ResultItem> {
         if (keys.length === 0) {
           result.push({
             indent,
-            parts: addKeyIfExists(key, [objectStart, objectEnd])
+            parts: decorate(key, [objectStart, objectEnd], hasTrailingComma)
           });
           break;
         }
+
+        const lastKeysIndex = keys.length - 1;
 
         queue.unshift(
           {
             isResultItem: true,
             indent,
-            parts: addKeyIfExists(key, [objectStart])
+            parts: decorate(key, [objectStart], false)
           },
-          ...keys.map(key => ({
+          ...keys.map((key, index) => ({
             isResultItem: false,
             indent: indent + 1,
             key,
-            data: data[key]
+            data: data[key],
+            hasTrailingComma: index !== lastKeysIndex
           })),
           {
             isResultItem: true,
             indent,
-            parts: [objectEnd]
+            parts: decorate(null, [objectEnd], hasTrailingComma)
           }
         );
         break;

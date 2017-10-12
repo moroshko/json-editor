@@ -20,7 +20,6 @@ function EditableObject(props: Props): React.Node {
         <EditableObjectLine
           indent={line.indent}
           parts={line.parts}
-          isLast={index === objectLines.length - 1}
           key={index}
         />
       ))}

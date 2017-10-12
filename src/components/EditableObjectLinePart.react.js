@@ -10,7 +10,9 @@ type Props = {
     | "array-start"
     | "array-end"
     | "object-start"
-    | "object-end",
+    | "object-end"
+    | "colon"
+    | "comma",
   value: ?(boolean | number | string)
 };
 
@@ -52,6 +54,14 @@ function EditableObjectLinePart(props: Props): React.Node {
       return (
         <span className="EditableObjectLinePart/object-paren">&#125;</span>
       );
+    }
+
+    case "colon": {
+      return <span className="EditableObjectLinePart/colon">: </span>;
+    }
+
+    case "comma": {
+      return <span className="EditableObjectLinePart/comma">,</span>;
     }
 
     default:
