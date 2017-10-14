@@ -10,21 +10,42 @@ type Props = {
   object: Object
 };
 
-function EditableObject(props: Props): React.Node {
-  const { object } = props;
-  const objectLines = getObjectLines(object);
+class EditableObject extends React.Component<Props> {
+  onClick = event => {
+    console.log(event.target.textContent);
 
-  return (
-    <div className="EditableObject-container">
-      {objectLines.map((line, index) => (
-        <EditableObjectLine
-          indent={line.indent}
-          parts={line.parts}
-          key={index}
-        />
-      ))}
-    </div>
-  );
+    const {
+      left: containerLeft,
+      top: containerTop
+    } = this.container.getBoundingClientRect();
+    const leftClick = event.clientX - containerLeft;
+    const topClick = event.clientY - containerTop;
+
+    console.log({ leftClick, topClick });
+  };
+
+  render(): React.Node {
+    const { object } = this.props;
+    const objectLines = getObjectLines(object);
+
+    return (
+      <div
+        className="EditableObject-container"
+        onClick={this.onClick}
+        ref={ref => {
+          this.container = ref;
+        }}
+      >
+        {objectLines.map((line, index) => (
+          <EditableObjectLine
+            indent={line.indent}
+            parts={line.parts}
+            key={index}
+          />
+        ))}
+      </div>
+    );
+  }
 }
 
 export default EditableObject;

@@ -11,6 +11,10 @@ type Props = {
 function EditableObjectLineIndent(props: Props): React.Node {
   const { indent } = props;
 
+  if (indent === 0) {
+    return null;
+  }
+
   return (
     <span className="EditableObjectLineIndent-container">
       {"  ".repeat(indent)}

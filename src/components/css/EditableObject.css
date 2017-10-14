@@ -2,4 +2,7 @@
   font-family: monospace;
   font-size: 14px;
   text-align: left;
+  width: 320px;
+  height: 500px;
+  overflow: auto;
 }

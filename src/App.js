@@ -70,7 +70,31 @@ class App extends React.Component<Props> {
         </header>
         <div className="App-intro">
           {/* <EditableText text="hello" onTextChange={this.onTextChange} /> */}
-          <EditableObject object={object} />
+          <div
+            style={{
+              backgroundColor: "#ddd"
+            }}
+          >
+            <EditableObject object={object} />
+          </div>
+          <div
+            style={{
+              backgroundColor: "#eee",
+              width: 320,
+              height: 500,
+              marginLeft: 20
+            }}
+          >
+            <textarea
+              style={{
+                fontFamily: "monospace",
+                fontSize: 14,
+                width: "100%",
+                height: "100%"
+              }}
+              value={JSON.stringify(object, null, 2)}
+            />
+          </div>
         </div>
       </div>
     );
